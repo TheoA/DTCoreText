@@ -1294,38 +1294,55 @@ static BOOL _DTCoreTextLayoutFramesShouldDrawDebugFrames = NO;
 	}
 	
 	
-	
-	// Flip the coordinate system (again)
-	CGContextSetTextMatrix(context, CGAffineTransformIdentity);
-	CGContextScaleCTM(context, 1.0, -1.0);
-	CGContextTranslateCTM(context, 0, -self.frame.size.height);
-	
-	for (DTCoreTextLayoutLine *oneLine in visibleLines)
-	{
+    // Flip the coordinate system (again)
+    CGContextSetTextMatrix(context, CGAffineTransformIdentity);
+    CGContextScaleCTM(context, 1.0, -1.0);
+    CGContextTranslateCTM(context, 0, -self.frame.size.height);
+    
+    for (DTCoreTextLayoutLine *oneLine in visibleLines)
+    {
 		
-		BOOL drawCrossOut = NO;
-		
-		for (DTCoreTextGlyphRun *oneRun in oneLine.glyphRuns)
-		{
-			if ([[oneRun.attributes objectForKey:@"CrossOut"] boolValue]) {
-				drawCrossOut = YES;
-				break;
-			}
-		}
-		
-		if (NO)
-		{
+        NSDictionary *overline = nil;
+        
+        for (DTCoreTextGlyphRun *oneRun in oneLine.glyphRuns)
+        {
+            overline = (NSDictionary *)[oneRun.attributes objectForKey:@"Overline"];
+            
+            if (overline) {
+                break;
+            }
+        }
+        
+        if (overline)
+        {
+            
+            UIColor *color = [overline objectForKey:@"color"];
+            CGFloat lineWidth = [[overline objectForKey:@"lineWidth"] floatValue];
+            CGFloat startInset = [[overline objectForKey:@"startInset"] floatValue];
+            CGFloat endInset = [[overline objectForKey:@"endInset"] floatValue];
+            CGFloat startMultiplier = [[overline objectForKey:@"startMultiplier"] floatValue];
+            CGFloat endMultiplier = [[overline objectForKey:@"endMultiplier"] floatValue];
 			
-			CGFloat red[4] = {0.5, 0, 0, 1};
-			// draw baseline
-			CGContextSetStrokeColor(context, red);
-			CGContextMoveToPoint(context, oneLine.baselineOrigin.x, oneLine.baselineOrigin.y);
-			CGContextAddLineToPoint(context, oneLine.baselineOrigin.x + oneLine.frame.size.width, oneLine.baselineOrigin.y - oneLine.ascent + oneLine.leading);
-			CGContextStrokePath(context);
+            CGContextSetStrokeColorWithColor(context, color.CGColor);
 			
-		}
-	}
-	
+            CGContextSetLineWidth(context, lineWidth);
+            
+            CGFloat ascenderY = oneLine.baselineOrigin.y - oneLine.ascent;
+            CGFloat descenderY = oneLine.baselineOrigin.y + oneLine.descent;
+            
+            CGFloat startY = descenderY + ((ascenderY - descenderY) * startMultiplier);
+            CGFloat endY = descenderY + ((ascenderY - descenderY) * endMultiplier);
+			
+            
+            CGContextMoveToPoint(context, startInset, startY);
+            
+            CGContextAddLineToPoint(context,
+                                    oneLine.baselineOrigin.x + oneLine.frame.size.width - endInset,
+                                    endY);
+			
+            CGContextStrokePath(context);
+        }
+    }
 
 	
 	
