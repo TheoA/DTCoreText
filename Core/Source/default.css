@@ -146,7 +146,7 @@ sub
 
 sup
 {
-	font-size:smaller;
+	font-size:xx-small; /* HACK: How the fuck do I supply an alternative to this stylesheet when I'm not calling initWithHTMLData:..? */
 	vertical-align:super;
 }
 
