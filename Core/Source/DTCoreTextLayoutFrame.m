@@ -1293,6 +1293,42 @@ static BOOL _DTCoreTextLayoutFramesShouldDrawDebugFrames = NO;
 		}
 	}
 	
+	
+	
+	// Flip the coordinate system (again)
+	CGContextSetTextMatrix(context, CGAffineTransformIdentity);
+	CGContextScaleCTM(context, 1.0, -1.0);
+	CGContextTranslateCTM(context, 0, -self.frame.size.height);
+	
+	for (DTCoreTextLayoutLine *oneLine in visibleLines)
+	{
+		
+		BOOL drawCrossOut = NO;
+		
+		for (DTCoreTextGlyphRun *oneRun in oneLine.glyphRuns)
+		{
+			if ([[oneRun.attributes objectForKey:@"CrossOut"] boolValue]) {
+				drawCrossOut = YES;
+				break;
+			}
+		}
+		
+		if (NO)
+		{
+			
+			CGFloat red[4] = {0.5, 0, 0, 1};
+			// draw baseline
+			CGContextSetStrokeColor(context, red);
+			CGContextMoveToPoint(context, oneLine.baselineOrigin.x, oneLine.baselineOrigin.y);
+			CGContextAddLineToPoint(context, oneLine.baselineOrigin.x + oneLine.frame.size.width, oneLine.baselineOrigin.y - oneLine.ascent + oneLine.leading);
+			CGContextStrokePath(context);
+			
+		}
+	}
+	
+
+	
+	
 	if (_textFrame)
 	{
 		CFRelease(_textFrame);
